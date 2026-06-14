@@ -130,4 +130,28 @@ const restaurar = async (id) => {
   return resultado.rows[0];
 };
 
-export { obtenerTodos, obtenerPorId, crear, actualizar, eliminar, restaurar };
+// Lista de estados para el combo (excluye la baja: ELIMINADO / es_activo = 0)
+const obtenerEstados = async () => {
+  const r = await pool.query(`
+    SELECT id_curso_estado, descripcion, es_activo
+    FROM cursos_estados
+    WHERE es_activo = 1
+    ORDER BY id_curso_estado ASC
+  `);
+  return r.rows;
+};
+
+// Cambia solo el estado del curso (botones rápidos Abrir / Cerrar inscripción)
+const cambiarEstado = async (id, id_curso_estado) => {
+  const r = await pool.query(`
+    UPDATE cursos
+    SET id_curso_estado = $1,
+        id_usuario_modificacion = 1,
+        fecha_hora_modificacion = CURRENT_TIMESTAMP
+    WHERE id_curso = $2
+    RETURNING *
+  `, [id_curso_estado, id]);
+  return r.rows[0];
+};
+
+export { obtenerTodos, obtenerPorId, crear, actualizar, eliminar, restaurar, obtenerEstados, cambiarEstado };

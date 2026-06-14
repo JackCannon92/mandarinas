@@ -16,6 +16,11 @@ let limiteActual   = 10;
 let activoActual   = 1;   // 1 = activos | 0 = dados de baja
 let busquedaActual = '';
 let debounceId     = null;
+let estadosCurso   = [];   // cache de cursos_estados para el combo
+
+// IDs de estado para los botones rápidos (según tu tabla cursos_estados)
+const ID_ESTADO_ABIERTA = 2; // INSCRIPCIÓN ABIERTA
+const ID_ESTADO_CERRADA = 3; // INSCRIPCIÓN CERRADA
 
 // 3) Referencias del DOM (se completan al cargar)
 let tablaBody, infoPaginacion, comboPaginacion, modalFormEl, modalDetalleEl;
@@ -102,8 +107,13 @@ function renderizarTabla(lista) {
   lista.forEach(c => {
     const activo = c.es_activo === 1 || c.es_activo === true;
     const btnOjo = `<button class="btn btn-sm btn-outline-info me-1" data-accion="detalle" data-id="${c.id}" title="Ver detalle"><i class="bi bi-eye"></i></button>`;
+    const esAbierta = c.id_curso_estado === ID_ESTADO_ABIERTA;
+    const btnEstado = esAbierta
+      ? `<button class="btn btn-sm btn-outline-warning me-1" data-accion="cerrar" data-id="${c.id}" title="Cerrar inscripción"><i class="bi bi-lock"></i></button>`
+      : `<button class="btn btn-sm btn-outline-success me-1" data-accion="abrir"  data-id="${c.id}" title="Abrir inscripción"><i class="bi bi-unlock"></i></button>`;
     const acciones = activo
       ? `${btnOjo}
+         ${btnEstado}
          <button class="btn btn-sm btn-outline-primary me-1" data-accion="editar"   data-id="${c.id}" title="Editar"><i class="bi bi-pencil"></i></button>
          <button class="btn btn-sm btn-outline-danger"        data-accion="eliminar" data-id="${c.id}" title="Dar de baja"><i class="bi bi-trash"></i></button>`
       : `${btnOjo}
@@ -131,6 +141,8 @@ document.addEventListener('click', (e) => {
   if (btn.dataset.accion === 'editar')    abrirEditar(id);
   if (btn.dataset.accion === 'eliminar')  eliminarCurso(id);
   if (btn.dataset.accion === 'restaurar') restaurarCurso(id);
+  if (btn.dataset.accion === 'abrir')     cambiarEstadoCurso(id, ID_ESTADO_ABIERTA);
+  if (btn.dataset.accion === 'cerrar')    cambiarEstadoCurso(id, ID_ESTADO_CERRADA);
 });
 
 // ============================================================
@@ -203,6 +215,35 @@ function cambiarLimite(e) {
   cargarCursos();
 }
 
+// Estados de curso para el combo (se cachea la primera vez)
+async function cargarEstadosCurso() {
+  if (estadosCurso.length) return estadosCurso;
+  const resp = await fetchAutenticado(`${API_URL}/estados`);
+  if (resp && resp.ok) estadosCurso = await resp.json();
+  return estadosCurso;
+}
+
+function llenarComboEstado(seleccionado) {
+  const sel = document.getElementById('estado');
+  sel.innerHTML = '';
+  estadosCurso.forEach(e => {
+    const o = document.createElement('option');
+    o.value = e.id_curso_estado;
+    o.textContent = e.descripcion;
+    if (seleccionado != null && Number(seleccionado) === e.id_curso_estado) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+// Botones rápidos Abrir / Cerrar inscripción
+async function cambiarEstadoCurso(id, idEstado) {
+  const resp = await fetchAutenticado(`${API_URL}/${id}/estado`, {
+    method: 'PATCH',
+    body: JSON.stringify({ id_curso_estado: idEstado }),
+  });
+  if (resp?.ok) cargarCursos();
+}
+
 // ============================================================
 //  Modal alta / edición
 // ============================================================
@@ -210,13 +251,15 @@ function modalForm() {
   return bootstrap.Modal.getOrCreateInstance(modalFormEl);
 }
 
-function abrirModalNuevo() {
+async function abrirModalNuevo() {
   document.getElementById('cursoId').value          = '';
   document.getElementById('nombre').value            = '';
   document.getElementById('descripcion').value       = '';
   document.getElementById('fechaInicio').value       = '';
   document.getElementById('cantidadHoras').value     = '';
   document.getElementById('inscriptosMax').value     = '';
+  await cargarEstadosCurso();
+  llenarComboEstado(null);
   document.getElementById('modalTitulo').textContent = 'Nuevo Curso';
   modalForm().show();
 }
@@ -237,6 +280,9 @@ async function abrirEditar(id) {
   if (typeof fecha === 'string' && fecha.includes('T')) fecha = fecha.slice(0, 10);
   document.getElementById('fechaInicio').value = fecha;
 
+  await cargarEstadosCurso();
+  llenarComboEstado(c.id_curso_estado);
+
   document.getElementById('modalTitulo').textContent = 'Editar Curso';
   modalForm().show();
 }
@@ -247,12 +293,14 @@ async function guardarCurso() {
   const horas = document.getElementById('cantidadHoras').value;
   const cupo  = document.getElementById('inscriptosMax').value;
 
+  const estadoSel = document.getElementById('estado').value;
   const datos = {
     nombre:         document.getElementById('nombre').value.trim(),
     descripcion:    document.getElementById('descripcion').value.trim() || null,
     fecha_inicio:   fecha || null,
     cantidad_horas: horas ? parseInt(horas) : null,
     inscriptos_max: cupo ? parseInt(cupo) : null,
+    id_curso_estado: estadoSel ? parseInt(estadoSel) : null,
   };
 
   const esEditar = id !== '';

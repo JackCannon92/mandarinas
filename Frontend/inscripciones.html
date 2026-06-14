@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cursos – FCAD UNER</title>
+  <title>Inscripciones – FCAD UNER</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/estilos.css">
@@ -12,14 +12,14 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid px-4">
-    <a class="navbar-brand" href="index.html"><img src="logo_fcad.png" alt="Logo" style="height:55px;object-fit:contain;"></a>
+    <a class="navbar-brand" href="dashboard.html"><img src="logo_fcad.png" alt="Logo" style="height:55px;object-fit:contain;"></a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-4 me-auto">
         <li class="nav-item"><a class="nav-link" href="dashboard.html"><i class="bi bi-house-door me-1"></i>Inicio</a></li>
-        <li class="nav-item"><a class="nav-link active" href="index.html"><i class="bi bi-people me-1"></i>Estudiantes</a></li>
+        <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-people me-1"></i>Estudiantes</a></li>
         <li class="nav-item"><a class="nav-link" href="cursos.html"><i class="bi bi-journal-bookmark me-1"></i>Cursos</a></li>
-        <li class="nav-item"><a class="nav-link" href="inscripciones.html"><i class="bi bi-clipboard-check me-1"></i>Inscripciones</a></li>
+        <li class="nav-item"><a class="nav-link active" href="inscripciones.html"><i class="bi bi-clipboard-check me-1"></i>Inscripciones</a></li>
       </ul>
       <div class="d-flex align-items-center">
         <span class="text-light me-3" id="navUsuario">Usuario</span>
@@ -31,8 +31,8 @@
 
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-journal-bookmark-fill me-2 text-secondary"></i>Gestión de Cursos</h2>
-    <button class="btn btn-dark" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg me-1"></i>Nuevo Curso</button>
+    <h2><i class="bi bi-clipboard-check-fill me-2 text-secondary"></i>Gestión de Inscripciones</h2>
+    <button class="btn btn-dark" onclick="abrirModalNueva()"><i class="bi bi-plus-lg me-1"></i>Nueva Inscripción</button>
   </div>
 
   <div class="card mb-4 shadow-sm">
@@ -41,13 +41,13 @@
         <div class="col-md-6">
           <div class="input-group">
             <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-            <input type="text" class="form-control" id="buscarInput" placeholder="Buscar por nombre o descripción..." oninput="buscarCurso(event)">
+            <input type="text" class="form-control" id="buscarInput" placeholder="Buscar por estudiante (documento/apellido) o curso..." oninput="buscarInscripcion(event)">
           </div>
         </div>
         <div class="col-md-3">
           <div class="form-check form-switch pt-1">
             <input class="form-check-input" type="checkbox" id="verInactivosCheck" onchange="alternarInactivos(event)">
-            <label class="form-check-label text-muted" for="verInactivosCheck">Ver cursos dados de baja</label>
+            <label class="form-check-label text-muted" for="verInactivosCheck">Ver canceladas</label>
           </div>
         </div>
         <div class="col-md-3">
@@ -68,15 +68,14 @@
     <table class="table table-hover align-middle mb-0">
       <thead class="table-dark">
         <tr>
-          <th>Nombre</th>
-          <th>Inicio</th>
-          <th class="text-center">Horas</th>
-          <th class="text-center">Cupo</th>
+          <th>Estudiante</th>
+          <th>Curso</th>
+          <th>Fecha de inscripción</th>
           <th>Estado</th>
           <th class="text-end px-4">Acciones</th>
         </tr>
       </thead>
-      <tbody id="tablaCursos">
+      <tbody id="tablaInscripciones">
       </tbody>
     </table>
   </div>
@@ -87,24 +86,24 @@
   </div>
 </div>
 
-<!-- Modal Alta / Edición -->
-<div class="modal fade" id="modalCurso" tabindex="-1">
+<!-- Modal Nueva Inscripción -->
+<div class="modal fade" id="modalInscripcion" tabindex="-1">
   <div class="modal-dialog"><div class="modal-content">
-    <div class="modal-header bg-light"><h5 class="modal-title" id="modalTitulo">Nuevo Curso</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-header bg-light"><h5 class="modal-title" id="modalTitulo">Nueva Inscripción</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
-      <input type="hidden" id="cursoId">
-      <div class="mb-3"><label class="form-label">Nombre *</label><input type="text" class="form-control" id="nombre"></div>
-      <div class="mb-3"><label class="form-label">Descripción</label><textarea class="form-control" id="descripcion" rows="2"></textarea></div>
-      <div class="row mb-3">
-        <div class="col"><label class="form-label">Fecha de Inicio</label><input type="date" class="form-control" id="fechaInicio"></div>
-        <div class="col"><label class="form-label">Cantidad de Horas *</label><input type="number" min="1" class="form-control" id="cantidadHoras"></div>
+      <div class="mb-3">
+        <label class="form-label">Estudiante *</label>
+        <select class="form-select" id="selEstudiante"><option value="">Cargando...</option></select>
       </div>
-      <div class="mb-3"><label class="form-label">Cupo Máximo *</label><input type="number" min="1" class="form-control" id="inscriptosMax"></div>
-      <div class="mb-3"><label class="form-label">Estado</label><select class="form-select" id="estado"></select></div>
+      <div class="mb-3">
+        <label class="form-label">Curso (con inscripción abierta) *</label>
+        <select class="form-select" id="selCurso"><option value="">Cargando...</option></select>
+        <div class="form-text">Solo se listan los cursos en estado "INSCRIPCIÓN ABIERTA".</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" type="button" onclick="cerrarModalForm()">Cancelar</button>
-      <button class="btn btn-dark" type="button" onclick="guardarCurso()">Guardar</button>
+      <button class="btn btn-dark" type="button" onclick="guardarInscripcion()">Inscribir</button>
     </div>
   </div></div>
 </div>
@@ -112,13 +111,13 @@
 <!-- Modal Detalle -->
 <div class="modal fade" id="modalDetalle" tabindex="-1">
   <div class="modal-dialog"><div class="modal-content">
-    <div class="modal-header bg-light"><h5 class="modal-title"><i class="bi bi-info-circle text-info me-2"></i>Detalle del Curso</h5><button class="btn-close" type="button" onclick="cerrarModalDetalle()"></button></div>
+    <div class="modal-header bg-light"><h5 class="modal-title"><i class="bi bi-info-circle text-info me-2"></i>Detalle de la Inscripción</h5><button class="btn-close" type="button" onclick="cerrarModalDetalle()"></button></div>
     <div class="modal-body" id="detalleBody"></div>
     <div class="modal-footer"><button class="btn btn-secondary" type="button" onclick="cerrarModalDetalle()">Cerrar</button></div>
   </div></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/cursos.js"></script>
+<script src="js/inscripciones.js"></script>
 </body>
 </html>

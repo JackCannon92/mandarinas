@@ -11,6 +11,9 @@ router.use(verificarToken);
 // 1. BROWSE (Listar con paginación, búsqueda y filtro activo/baja)
 router.get('/', cursosController.obtenerTodos);
 
+// Lista de estados para el combo (DEBE ir antes de /:id)
+router.get('/estados', cursosController.obtenerEstados);
+
 // 2. READ (Ver detalle de un curso)
 router.get('/:id', cursosController.obtenerPorId);
 
@@ -25,5 +28,8 @@ router.delete('/:id', cursosController.eliminar);
 
 // 6. RESTAURAR
 router.patch('/:id/activar', cursosController.restaurar);
+
+// 7. CAMBIAR ESTADO (botones rápidos Abrir / Cerrar inscripción)
+router.patch('/:id/estado', cursosController.cambiarEstado);
 
 export default router;

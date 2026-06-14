@@ -10,6 +10,9 @@ import cors from 'cors';
 import estudiantesRoutes from './routes/estudiantesRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import cursosRoutes from './routes/cursosRoutes.js';
+import inscripcionesRoutes from './routes/inscripcionesRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';   // arriba con los imports
+
 
 const app = express();
 const puerto = process.env.PORT || 3000;
@@ -22,6 +25,8 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/estudiantes', estudiantesRoutes);
 app.use('/cursos', cursosRoutes);
+app.use('/inscripciones', inscripcionesRoutes);
+app.use('/dashboard', dashboardRoutes); 
 
 // Manejo de 404
 app.use((req, res) => {

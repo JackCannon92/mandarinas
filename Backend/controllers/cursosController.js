@@ -92,4 +92,33 @@ const restaurar = async (req, res) => {
   }
 };
 
-export { obtenerTodos, obtenerPorId, crear, actualizar, eliminar, restaurar };
+// ESTADOS (para llenar el combo del formulario)
+const obtenerEstados = async (req, res) => {
+  try {
+    const estados = await cursosService.obtenerEstados();
+    res.json(estados);
+  } catch (error) {
+    console.error('Error al obtener estados de curso:', error.message);
+    res.status(500).json({ error: 'Error al obtener los estados de curso' });
+  }
+};
+
+// CAMBIAR ESTADO (botones rápidos Abrir / Cerrar inscripción)
+const cambiarEstado = async (req, res) => {
+  try {
+    const { id_curso_estado } = req.body;
+    if (!id_curso_estado) {
+      return res.status(400).json({ error: 'Falta el id_curso_estado' });
+    }
+    const actualizado = await cursosService.cambiarEstado(req.params.id, id_curso_estado);
+    res.json(cursosTransform.transformarCurso(actualizado));
+  } catch (error) {
+    if (error.message === 'Curso no encontrado') {
+      return res.status(404).json({ mensaje: error.message });
+    }
+    console.error('Error al cambiar estado de curso:', error.message);
+    res.status(500).json({ error: 'Error al cambiar el estado del curso' });
+  }
+};
+
+export { obtenerTodos, obtenerPorId, crear, actualizar, eliminar, restaurar, obtenerEstados, cambiarEstado };
