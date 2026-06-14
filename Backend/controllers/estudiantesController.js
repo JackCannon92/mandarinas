@@ -1,22 +1,23 @@
 import * as estudiantesService   from '../services/estudiantesService.js';
 import * as estudiantesTransform from '../Transforms/estudiantesTransform.js';
 
-// BROWSE — lee busqueda/pagina/limite del query string y los pasa al servicio
+// BROWSE — lee busqueda/pagina/limite/activo del query string y los pasa al servicio
 const obtenerTodos = async (req, res) => {
   try {
-    const { busqueda = '', pagina = 1, limite = 10 } = req.query;
+    const { busqueda = '', pagina = 1, limite = 10, activo = 1 } = req.query;
 
     const resultado = await estudiantesService.obtenerTodos({
       busqueda,
       pagina:  parseInt(pagina),
       limite:  parseInt(limite),
+      activo:  parseInt(activo),   // 1 = activos | 0 = dados de baja
     });
 
     // Transformamos solo el array de datos; el resto (total, paginas) va tal cual
     res.json({
-      datos:       estudiantesTransform.transformarListaEstudiantes(resultado.datos),
-      total:       resultado.total,
-      pagina:      resultado.pagina,
+      datos:        estudiantesTransform.transformarListaEstudiantes(resultado.datos),
+      total:        resultado.total,
+      pagina:       resultado.pagina,
       totalPaginas: resultado.totalPaginas,
     });
   } catch (error) {

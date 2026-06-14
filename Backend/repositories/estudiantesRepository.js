@@ -1,31 +1,33 @@
 import pool from '../config/db.js';
 
-// obtenerTodos: Devuelve estudiantes con soporte de búsqueda por texto y paginación.
-const obtenerTodos = async ({ busqueda = '', pagina = 1, limite = 10 } = {}) => {
+// obtenerTodos: estudiantes con búsqueda por texto, paginación y filtro activo/baja.
+const obtenerTodos = async ({ busqueda = '', pagina = 1, limite = 10, activo = 1 } = {}) => {
   const offset = (pagina - 1) * limite;
   const filtro = `%${busqueda}%`;
 
   const consultaDatos = `
     SELECT * FROM estudiantes
-    WHERE (apellido    ILIKE $1
-        OR nombres     ILIKE $1
-        OR documento::text ILIKE $1
-        OR email       ILIKE $1)
+    WHERE activo = $1
+      AND (apellido       ILIKE $2
+        OR nombres        ILIKE $2
+        OR documento::text ILIKE $2
+        OR email          ILIKE $2)
     ORDER BY id_estudiante ASC
-    LIMIT $2 OFFSET $3
+    LIMIT $3 OFFSET $4
   `;
 
   const consultaTotal = `
     SELECT COUNT(*) FROM estudiantes
-    WHERE (apellido    ILIKE $1
-        OR nombres     ILIKE $1
-        OR documento::text ILIKE $1
-        OR email       ILIKE $1)
+    WHERE activo = $1
+      AND (apellido       ILIKE $2
+        OR nombres        ILIKE $2
+        OR documento::text ILIKE $2
+        OR email          ILIKE $2)
   `;
 
-  const resultado  = await pool.query(consultaDatos, [filtro, limite, offset]);
-  const totalRes   = await pool.query(consultaTotal, [filtro]);
-  const total      = parseInt(totalRes.rows[0].count);
+  const resultado = await pool.query(consultaDatos, [activo, filtro, limite, offset]);
+  const totalRes  = await pool.query(consultaTotal, [activo, filtro]);
+  const total     = parseInt(totalRes.rows[0].count);
 
   return {
     datos: resultado.rows,

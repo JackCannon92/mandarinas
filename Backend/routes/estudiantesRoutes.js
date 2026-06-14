@@ -1,19 +1,29 @@
-import { Router }              from 'express';
+import express from 'express';
 import * as estudiantesController from '../controllers/estudiantesController.js';
 import { validarDatosEstudiante } from '../validators/estudiantesValidator.js';
-// 1. Esto ya lo tenías comentado y está perfecto:
-// import { verificarToken }         from '../middlewares/authMiddleware.js';
+import { verificarToken } from '../middlewares/authMiddleware.js';
 
-const router = Router();
+const router = express.Router();
 
-// 2. COMENTÁ ESTA LÍNEA (Ponela igual que acá abajo, con las dos barras '//'):
-// router.use(verificarToken);
+// 🔒 Proteger todas las rutas de estudiantes con JWT
+router.use(verificarToken);
 
-router.get('/',                 estudiantesController.obtenerTodos);
-router.get('/:id',              estudiantesController.obtenerPorId);
-router.post('/',   validarDatosEstudiante, estudiantesController.crear);
+// 1. BROWSE (Listar con paginación, búsqueda y filtro activo/baja)
+router.get('/', estudiantesController.obtenerTodos);
+
+// 2. READ (Ver detalle de un estudiante)
+router.get('/:id', estudiantesController.obtenerPorId);
+
+// 3. ADD (Crear un nuevo estudiante)
+router.post('/', validarDatosEstudiante, estudiantesController.crear);
+
+// 4. EDIT (Actualizar un estudiante existente)
 router.put('/:id', validarDatosEstudiante, estudiantesController.actualizar);
-router.delete('/:id',           estudiantesController.eliminar);
-router.patch('/:id/activar',    estudiantesController.restaurar);
+
+// 5. DELETE (Baja lógica / Desactivar)
+router.delete('/:id', estudiantesController.eliminar);
+
+// 6. RESTAURAR (Activar un estudiante que estaba de baja)
+router.patch('/:id/activar', estudiantesController.restaurar);
 
 export default router;
